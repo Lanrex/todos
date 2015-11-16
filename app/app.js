@@ -1,12 +1,30 @@
 Todos = new Mongo.Collection('todos');
+Lists = new Mongo.Collection('lists');
 
+Router.route('/',{
+  template: 'home',
+  name: 'home'
+});
+Router.route('/register');
+Router.route('/login');
+Router.route('/list/:_id',{
+  template: 'listPage',
+  name: 'listPage',
+  data: function(){
+      return Lists.findOne({_id: this.params._id});
+  }
+});
+
+Router.configure({
+  layoutTemplate: 'main'
+});
 
 if(Meteor.isClient){
   // client code goes here
 
   Template.todos.helpers({
     'todo': function(){
-        return Todos.find({}, {sort: {createdAt: -1}});
+        return Todos.find({listId: this._id}, {sort: {createdAt: -1}});
     }
   });
 
@@ -18,7 +36,8 @@ if(Meteor.isClient){
       Todos.insert({
         name: todoName,
         completed: false,
-        createdAt: new Date()
+        createdAt: new Date(),
+        listId: this._id
       });
       $('[name="todoName"]').val('');
     }
@@ -66,15 +85,32 @@ if(Meteor.isClient){
   Template.todosCount.helpers({
     'totalTodos': function(){
         // code goes here
-        return Todos.find().count();
+        return Todos.find({listId: this._id}).count();
     },
     'completedTodos': function(){
         // code goes here
-        return Todos.find({completed : true}).count();
+        return Todos.find({completed : true, listId: this._id}).count();
     }
   });
 
+  Template.addList.events({
+    'submit form': function(event){
+      event.preventDefault();
+      var listName=$('[name=listName]').val();
+      Lists.insert({
+        name: listName
+      }, function(error, results){
+        Router.go('listPage', {_id: results});
+      });
+      $('[name=listName]').val('');
+    }
+  });
 
+  Template.lists.helpers({
+    'list': function(){
+      return Lists.find({}, {sort: {name:1}});
+    }
+  });
 
 }
 
