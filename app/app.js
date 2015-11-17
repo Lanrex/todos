@@ -12,6 +12,14 @@ Router.route('/list/:_id',{
   name: 'listPage',
   data: function(){
       return Lists.findOne({_id: this.params._id});
+  },
+  onBeforeAction: function(){
+    if (Meteor.userId()){
+      this.next();
+    }
+    else{
+      this.render('login');
+    }
   }
 });
 
@@ -24,7 +32,7 @@ if(Meteor.isClient){
 
   Template.todos.helpers({
     'todo': function(){
-        return Todos.find({listId: this._id}, {sort: {createdAt: -1}});
+        return Todos.find({listId: this._id, createdBy: Meteor.userId()}, {sort: {createdAt: -1}});
     }
   });
 
@@ -37,6 +45,7 @@ if(Meteor.isClient){
         name: todoName,
         completed: false,
         createdAt: new Date(),
+        createdBy: Meteor.userId(),
         listId: this._id
       });
       $('[name="todoName"]').val('');
@@ -98,7 +107,8 @@ if(Meteor.isClient){
       event.preventDefault();
       var listName=$('[name=listName]').val();
       Lists.insert({
-        name: listName
+        name: listName,
+        createdBy: Meteor.userId()
       }, function(error, results){
         Router.go('listPage', {_id: results});
       });
@@ -108,7 +118,53 @@ if(Meteor.isClient){
 
   Template.lists.helpers({
     'list': function(){
-      return Lists.find({}, {sort: {name:1}});
+      return Lists.find({createdBy: Meteor.userId()}, {sort: {name:1}});
+    }
+  });
+
+  Template.register.events({
+    'submit form': function(event){
+      event.preventDefault();
+      var email = $('[name=email]').val();
+      var password = $('[name=password]').val();
+      Accounts.createUser({
+        email: email,
+        password: password
+      }, function(error){
+        if (error){
+          console.log(error.reason);
+        }
+        else{
+          Router.go('home');
+        }
+      });
+    }
+  });
+
+  Template.navigation.events({
+    'click .logout': function(event){
+      event.preventDefault();
+      Meteor.logout();
+      Router.go('login');
+    }
+  });
+
+  Template.login.events({
+    'submit form': function(event){
+      event.preventDefault();
+      var email = $('[name=email]').val();
+      var password = $('[name=password]').val();
+      Meteor.loginWithPassword(email, password, function(error){
+        if (error){
+          console.log(error.reason);
+        }
+        else{
+          var currentRoute = Router.current().route.getName();
+          if (currentRouter == 'login'){
+            Router.go('home');
+          }
+        }
+      });
     }
   });
 
