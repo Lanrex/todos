@@ -14,3 +14,7 @@
   cursor:default;
   outline:none;
 }
+
+input.error{
+  background-color: rgb(255,231,231);
+}

@@ -30,6 +30,7 @@
     </form>
 </template>
 
+
 <template name="todosCount">
   {{#if totalTodos}}
     <p>You have completed {{completedTodos}} out of {{totalTodos}} tasks.</p>
@@ -95,9 +96,13 @@
 
 <template name="login">
   <h2>Login</h2>
-  <form>
-    <p>Email: <input type="email" name="email"></p>
-    <p>Password: <input type="password" name="password"></p>
+  <form class="login">
+    <p>Email: <input type="email" name="email" required></p>
+    <p>Password: <input type="password" name="password" required></p>
     <p><input type="submit" value="Login"></p>
   </form>
+</template>
+
+<template name="loading">
+  <p>Loading...</p>
 </template>
